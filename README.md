@@ -1,51 +1,115 @@
 # CL-Circular-Analytics
 
-Plataforma local de analitica estrategica para identificar clientes potenciales de monitoreo de cadena de frio en el corredor comercial Mexico-Estados Unidos para carnes congeladas bovinas y porcinas.
+Plataforma de analítica comercial y logística para CL Circular, enfocada en el corredor México-Estados Unidos del mercado cárnico.
 
-## Objetivo
+## Estado actual de la app
 
-Responder:
+La aplicación productiva corre con:
 
-**Donde estan los clientes potenciales con mayor riesgo logistico y mayor valor economico para CL Circular?**
+- `backend/main.py` (FastAPI)
+- `frontend/index.html` + `frontend/app.js` + `frontend/styles.css` (UI cliente)
 
-La plataforma incluye:
+La versión Streamlit (`app/`) se conserva como módulo histórico, pero el flujo principal actual es FastAPI + frontend HTML.
 
-1. Mercado y KPIs
-2. Ranking de empresas (Opportunity Score configurable)
-3. Mapa de flujos MX -> US
-4. Simulador de escenarios
-5. Pronosticos (ARIMA/SARIMA/Holt-Winters)
-6. Clustering de clientes (K-Means + PCA + codo/silhouette)
-7. Generador de leads con export CSV
+## Funcionalidades implementadas
 
-## Estructura
+Tabs activas en el frontend:
+
+1. `Mercado`
+2. `Pronósticos`
+3. `Estrategia`
+4. `Clusters`
+5. `Prioridad Comercial`
+6. `Mapa de Flujos`
+
+### Mercado
+- KPIs globales (volumen, valor, contenedores, riesgo medio, empresas analizadas).
+- Tendencia de exportación por producto.
+- Top estados exportadores.
+- Participación de empresas.
+- Dispersión toneladas vs índice de riesgo.
+
+### Pronósticos
+- Forecast ARIMAX trimestral (bovino y porcino).
+- Métricas del modelo y tablas de detalle.
+
+### Estrategia
+- Roadmap de expansión por fases (corto, mediano y largo plazo).
+
+### Clusters
+- Clustering con diagnósticos (codo + silhouette).
+- PCA 2D/3D y tabla de perfil.
+- Nombres de cluster de negocio:
+  - `0`: Microexportadores
+  - `1`: Mid-Tier Afines
+  - `2`: Top-Tier
+  - `3`: LowMid-Tier
+
+### Prioridad Comercial
+- Tabla de priorización de cierre.
+- Fuente principal: `data/df_final.csv`.
+- Top 10 por defecto + botón `Ver Más`.
+- Gráficas:
+  - Feature importance.
+  - Probabilidad media de cierre por cluster.
+- Métricas del modelo:
+  - Accuracy, Precision, Recall, F1, ROC AUC.
+  - Desglose por clase (`0` y `1`).
+
+### Mapa de Flujos
+- Mapa Leaflet de rutas con nodos de destino.
+- Filtro de ruta integrado.
+- Gráficas complementarias:
+  - Dispersión volumen vs riesgo.
+  - Top 5 rutas con mayor índice de riesgo.
+
+## Datos principales
+
+Ubicación: carpeta `data/`
+
+Archivos clave:
+- `df_final.csv` (prioridad comercial)
+- `empresas_con_clusters.csv`
+- `dataset_empresas_actualizado.csv`
+- `rutas (2).csv`
+- `destinos_rutas_top20.csv`
+- `risk_features.csv`
+- `EXPORTS MEXICO ANUAL LIMPIO.xlsx`
+- `EXPORTS-MEXICO-TRIMESTRALES-2013-2024.csv`
+- `tipo_cambio_promedio_trimestral.csv`
+
+## Metodología resumida
+
+- **Estimación de volumen y envíos**: a partir de valor exportado y precio USD/ton por código arancelario.
+- **Índice de riesgo por ruta**: combinación ponderada de severidad, pérdidas, congestión fronteriza y variabilidad climática (normalización 0-100).
+- **Prioridad comercial**: probabilidad de cierre por empresa usando el dataset final y visualización de performance de clasificación.
+
+## Estructura (resumen)
 
 ```text
 CL-Circular-Analytics
-â”œâ”€â”€ app
-â”‚   â”œâ”€â”€ Home.py
-â”‚   â””â”€â”€ pages
-â”‚       â”œâ”€â”€ 1_Mercado_KPIs.py
-â”‚       â”œâ”€â”€ 2_Ranking_Empresas.py
-â”‚       â”œâ”€â”€ 3_Mapa_Flujos.py
-â”‚       â”œâ”€â”€ 4_Simulador_Escenarios.py
-â”‚       â”œâ”€â”€ 5_Pronosticos.py
-â”‚       â”œâ”€â”€ 6_Clustering.py
-â”‚       â””â”€â”€ 7_Generador_Leads.py
-â”œâ”€â”€ analytics
-â”œâ”€â”€ config
-â”œâ”€â”€ data
-â”œâ”€â”€ outputs
-â”œâ”€â”€ requirements.txt
-â””â”€â”€ README.md
++-- analytics/
++-- app/
++-- backend/
+¦   +-- main.py
++-- config/
++-- data/
++-- frontend/
+¦   +-- index.html
+¦   +-- app.js
+¦   +-- styles.css
+¦   +-- Assets/
++-- outputs/
++-- requirements.txt
++-- README.md
 ```
 
 ## Requisitos
 
 - Python 3.10+
-- Visual Studio Code
+- pip
 
-## Instalacion
+## Instalación
 
 ```bash
 cd CL-Circular-Analytics
@@ -54,60 +118,30 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-## Generar datos mock
+## Ejecución local (Windows / PowerShell)
 
-```bash
-python data/generate_mock_data.py
+Ejemplo con entorno Conda:
+
+```powershell
+& "C:\Users\sag33\Anaconda3\envs\clcircular\python.exe" -m uvicorn backend.main:app --app-dir "C:\Users\sag33\Desktop\APP CL CIRCULAR\CL-Circular-Analytics" --host 127.0.0.1 --port 8070 --reload
 ```
 
-Notas:
-
-- Se generan automaticamente 100 empresas, 200 flujos y 60 meses de historial mensual.
-- Si no existen los CSV, la app los crea al iniciar.
-
-## Ejecutar aplicacion
-
-```bash
-streamlit run app/Home.py
-```
-
-## Frontend HTML + Backend API (para presentacion cliente)
-
-Arquitectura:
-
-- `backend/main.py`: API FastAPI reutilizando modulos de analitica Python.
-- `frontend/index.html`: interfaz comercial con estilos modernos.
-- `frontend/app.js`: consumo de endpoints, graficas Plotly y mapa Leaflet.
-
-Ejecutar:
-
-```bash
-uvicorn backend.main:app --reload --port 8000
-```
-
-Abrir en navegador:
+Abrir:
 
 ```text
-http://localhost:8000
+http://127.0.0.1:8070
 ```
 
-## Modelo de oportunidad
+## Endpoints API principales
 
-Opportunity Score:
+- `GET /api/filters`
+- `GET /api/kpis`
+- `GET /api/map-flows`
+- `GET /api/forecast-arimax-quarterly`
+- `GET /api/clustering`
+- `GET /api/close-probability-model`
 
-```text
-(volumen_exportado * w1)
-+ (valor_mercancia * w2)
-+ (distancia_logistica * w3)
-+ (sensibilidad_temperatura * w4)
-+ (riesgo_congestion * w5)
-+ (incidencias_proxy * w6)
-```
+## Notas de repositorio
 
-Los pesos `w1..w6` se ajustan desde la pagina de ranking.
-
-## Salidas
-
-- Visualizaciones interactivas en Streamlit
-- Tabla de leads priorizados
-- Export CSV desde la pagina `7_Generador_Leads.py`
+- Se usa `.gitignore` para excluir `.venv`, `__pycache__`, caches y outputs.
+- `frontend/Assets/hero.mp4` es grande (GitHub muestra advertencia >50MB). Se recomienda Git LFS para producción.
